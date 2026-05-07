@@ -4,6 +4,7 @@ import { Loan, PayoffPlan, PayoffStrategy } from "@/types";
 import { runPayoffSimulation, runBaselineSimulation } from "@/lib/snowballEngine";
 import { totalDebt, totalMonthlyPayment } from "@/lib/loanEngine";
 import { today } from "@/lib/utils";
+import { createClient } from "@/lib/supabase";
 import { Dashboard } from "@/components/Dashboard";
 import { LoanTable } from "@/components/LoanTable";
 import { LoanForm } from "@/components/LoanForm";
@@ -13,9 +14,10 @@ import { ActionPlan } from "@/components/ActionPlan";
 import { ScenarioComparison } from "@/components/ScenarioComparison";
 import { ImportWizard } from "@/components/ImportWizard";
 import { Button } from "@/components/ui/button";
+import type { User } from "@supabase/supabase-js";
 import {
   LayoutDashboard, CreditCard, BarChart3, ListChecks, GitCompare, Upload,
-  Download, Save, Plus, Snowflake, TrendingDown, Minus,
+  Download, Save, Plus, Snowflake, TrendingDown, Minus, LogOut,
 } from "lucide-react";
 
 const STORAGE_KEY = "snowball_loans_v2";
@@ -77,6 +79,8 @@ const STRATEGY_OPTIONS: { value: LocalStrategy; label: string; icon: typeof Snow
 ];
 
 export default function Home() {
+  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const [strategy, setStrategy] = useState<LocalStrategy>("snowball");
@@ -92,26 +96,42 @@ export default function Home() {
   const [avalanchePlan, setAvalanchePlan] = useState<PayoffPlan | null>(null);
   const [calculated, setCalculated] = useState(false);
 
-  /* ── Persist ──────────────────────────────────────────── */
+  /* ── Auth + Persist ───────────────────────────────────── */
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Loan[];
-        if (parsed.length > 0) {
-          setLoans(parsed);
-          return;
-        }
-      }
-      // אין נתונים — טוען דוגמאות
-      setLoans(SAMPLE_LOANS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_LOANS));
-    } catch {}
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const saveToStorage = useCallback((ls: Loan[]) => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ls)); } catch {}
-  }, []);
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("loans")
+        .select("data")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.data && (data.data as Loan[]).length > 0) {
+        setLoans(data.data as Loan[]);
+      } else {
+        setLoans(SAMPLE_LOANS);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const saveToStorage = useCallback(async (ls: Loan[]) => {
+    if (!user) return;
+    await supabase.from("loans").upsert({
+      user_id: user.id,
+      data: ls,
+      updated_at: new Date().toISOString(),
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   /* ── CRUD ─────────────────────────────────────────────── */
   const upsertLoan = (loan: Loan) => {
@@ -235,6 +255,11 @@ export default function Home() {
             <Button variant="primary" size="sm" onClick={() => { setEditingLoan(null); setShowForm(true); }}>
               <Plus size={14} />הלוואה חדשה
             </Button>
+            {user && (
+              <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()} title={user.email ?? ""}>
+                <LogOut size={14} /><span className="hidden sm:inline">יציאה</span>
+              </Button>
+            )}
           </div>
         </div>
 
