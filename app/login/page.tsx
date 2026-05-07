@@ -6,6 +6,7 @@ import { Snowflake, Loader2 } from "lucide-react";
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
+  const [oauthUrl, setOauthUrl] = useState<string | null>(null);
 
   const signInWithGoogle = async () => {
     setLoading(true);
@@ -19,15 +20,13 @@ export default function LoginPage() {
           skipBrowserRedirect: true,
         },
       });
-      // Always show raw result so we can diagnose
-      alert(
-        `url: ${result.data?.url?.slice(0, 80) ?? "NONE"}\n` +
-        `error: ${result.error?.message ?? "NONE"}\n` +
-        `status: ${result.error?.status ?? "NONE"}`
-      );
       if (result.error) { setError(result.error.message); return; }
       if (result.data?.url) {
-        window.location.href = result.data.url;
+        // Try every redirect method available
+        try { window.location.replace(result.data.url); } catch {}
+        try { window.location.href = result.data.url; } catch {}
+        // Fallback: show as clickable link
+        setOauthUrl(result.data.url);
       } else {
         setError("Supabase לא החזיר URL — בדוק הגדרות Google Provider");
       }
@@ -48,6 +47,16 @@ export default function LoginPage() {
         </div>
         <h1 className="text-2xl font-bold text-slate-800 mb-1">כדור שלג</h1>
         <p className="text-slate-400 text-sm mb-8">מחשבון פירעון הלוואות</p>
+
+        {/* Fallback manual link if auto-redirect failed */}
+        {oauthUrl && (
+          <a
+            href={oauthUrl}
+            className="block w-full mb-4 p-3 bg-blue-600 text-white rounded-xl text-sm font-medium text-center hover:bg-blue-700"
+          >
+            לחץ כאן להמשך הכניסה עם Google ←
+          </a>
+        )}
 
         {/* Error message */}
         {error && (
