@@ -12,26 +12,28 @@ export default function LoginPage() {
     setError(null);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const result = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          skipBrowserRedirect: true,   // we handle the redirect manually for debugging
+          skipBrowserRedirect: true,
         },
       });
-      if (error) {
-        setError(`שגיאה: ${error.message}`);
-        return;
-      }
-      if (data?.url) {
-        // Show the URL before redirecting so we can debug if needed
-        console.log("OAuth URL:", data.url);
-        window.location.href = data.url;
+      // Always show raw result so we can diagnose
+      alert(
+        `url: ${result.data?.url?.slice(0, 80) ?? "NONE"}\n` +
+        `error: ${result.error?.message ?? "NONE"}\n` +
+        `status: ${result.error?.status ?? "NONE"}`
+      );
+      if (result.error) { setError(result.error.message); return; }
+      if (result.data?.url) {
+        window.location.href = result.data.url;
       } else {
-        setError(`לא התקבל URL מ-Supabase. data=${JSON.stringify(data)}`);
+        setError("Supabase לא החזיר URL — בדוק הגדרות Google Provider");
       }
     } catch (e) {
-      setError(`חריגה: ${String(e)}`);
+      alert(`Exception: ${String(e)}`);
+      setError(String(e));
     } finally {
       setLoading(false);
     }
