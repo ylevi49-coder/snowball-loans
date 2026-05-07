@@ -3,9 +3,10 @@ import { createClient } from "@/lib/supabase";
 import { Snowflake } from "lucide-react";
 
 export default function LoginPage() {
-  const supabase = createClient();
-
   const signInWithGoogle = async () => {
+    // createClient() is called here (inside an event handler) so it
+    // never runs during SSR / build-time prerendering.
+    const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
