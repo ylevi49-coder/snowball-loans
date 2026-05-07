@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(npx next *)",
+      "Bash(npm show *)",
+      "Bash(node -e \"const pkg = require\\('./node_modules/xlsx/package.json'\\); console.log\\('xlsx version:', pkg.version, 'main:', pkg.main, 'module:', pkg.module\\)\")",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(npm install *)",
+      "Read(//tmp/**)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /F /PID 16564)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -X POST http://localhost:3000/api/ai-pdf-extract -H 'Content-Type: application/json' -d '{\"data\":\"dGVzdA==\",\"mediaType\":\"application/pdf\"}')",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:3000/api/ai-mapping -H 'Content-Type: application/json' -d '{\"headers\":[\"שם\",\"יתרה\",\"ריבית\"],\"sampleRows\":[[\"משכנתא\",\"650000\",\"4.5\"]]}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/ai-mapping -H 'Content-Type: application/json' -d '{\"headers\":[\"שם הלוואה\",\"יתרה נוכחית\",\"ריבית שנתית\",\"תשלום חודשי\"],\"sampleRows\":[[\"משכנתא\",\"650000\",\"4.5\",\"4200\"]]}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/ai-pdf-extract -H 'Content-Type: application/json' -d '{\"data\":\"JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoK\",\"mediaType\":\"application/pdf\"}')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('error',''\\)[:200]\\)\")",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USER\\\\Desktop\\\\claude\" | ForEach-Object { Write-Host $_.Name; Get-ChildItem $_.FullName | Select-Object -First 8 | ForEach-Object { Write-Host \"  $_\" } })",
+      "PowerShell(cmd /c \"dir /a /s \"\"C:\\\\Users\\\\USER\\\\Desktop\\\\claude\\\\\"\" | findstr /i \"\"package.json\"\" 2>&1\")",
+      "Bash(mount)",
+      "Bash(python3)",
+      "PowerShell(Get-Process -Id 2972 | Select-Object MainWindowTitle, Path; \\(Get-WmiObject Win32_Process -Filter \"ProcessId=2972\"\\).CommandLine; \\(Get-WmiObject Win32_Process -Filter \"ProcessId=2972\"\\).ExecutablePath)",
+      "PowerShell($path = \"C:\\\\Users\\\\USER\\\\Desktop\\\\claude\\\\\" + [char]1499 + [char]1491 + [char]1493 + [char]1512 + \" \" + [char]1513 + [char]1500 + [char]1490; Write-Host \"path: $path\"; Get-ChildItem -LiteralPath $path -ErrorAction Stop | Select-Object Name, PSIsContainer)"
+    ]
+  }
+}
