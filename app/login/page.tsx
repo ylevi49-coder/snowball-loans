@@ -12,15 +12,26 @@ export default function LoginPage() {
     setError(null);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: true,   // we handle the redirect manually for debugging
         },
       });
-      if (error) setError(error.message);
+      if (error) {
+        setError(`שגיאה: ${error.message}`);
+        return;
+      }
+      if (data?.url) {
+        // Show the URL before redirecting so we can debug if needed
+        console.log("OAuth URL:", data.url);
+        window.location.href = data.url;
+      } else {
+        setError(`לא התקבל URL מ-Supabase. data=${JSON.stringify(data)}`);
+      }
     } catch (e) {
-      setError(String(e));
+      setError(`חריגה: ${String(e)}`);
     } finally {
       setLoading(false);
     }
