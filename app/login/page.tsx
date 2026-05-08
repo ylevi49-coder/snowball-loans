@@ -118,6 +118,12 @@ function LoginContent() {
         )}
 
         <p className="text-xs text-slate-400 mt-6">הנתונים שלך מאובטחים ומוצפנים</p>
+        {/* debug — remove after fix */}
+        <p className="text-xs text-slate-300 mt-1 break-all" dir="ltr">
+          key len: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").length} |
+          start: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "MISSING").slice(0,12)} |
+          end: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "MISSING").slice(-6)}
+        </p>
       </div>
     </div>
   );
