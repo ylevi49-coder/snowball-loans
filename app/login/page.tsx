@@ -1,7 +1,6 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase";
 import { Snowflake, Mail, Loader2, CheckCircle } from "lucide-react";
 
 function LoginContent() {
@@ -19,14 +18,13 @@ function LoginContent() {
     setLoading(true);
     setError(null);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), origin: window.location.origin }),
       });
-      if (error) setError(error.message);
+      const json = await res.json();
+      if (json.error) setError(json.error);
       else setSent(true);
     } catch (e) {
       setError(String(e));
@@ -118,12 +116,6 @@ function LoginContent() {
         )}
 
         <p className="text-xs text-slate-400 mt-6">הנתונים שלך מאובטחים ומוצפנים</p>
-        {/* debug — remove after fix */}
-        <p className="text-xs text-slate-300 mt-1 break-all" dir="ltr">
-          key len: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").length} |
-          start: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "MISSING").slice(0,12)} |
-          end: {(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "MISSING").slice(-6)}
-        </p>
       </div>
     </div>
   );
