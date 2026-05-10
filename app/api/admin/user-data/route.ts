@@ -40,13 +40,16 @@ export async function GET(request: Request) {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
-  const { data, error } = await adminClient
+  // Use limit(1) + order to safely get the latest row even if duplicates exist
+  const { data: rows, error } = await adminClient
     .from("loans")
     .select("data, updated_at")
     .eq("user_id", userId)
-    .maybeSingle();
+    .order("updated_at", { ascending: false })
+    .limit(1);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const data = rows?.[0] ?? null;
 
   // Also get user email
   const { data: { user } } = await adminClient.auth.admin.getUserById(userId);
