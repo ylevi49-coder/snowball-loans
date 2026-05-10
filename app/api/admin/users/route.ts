@@ -53,7 +53,7 @@ export async function GET() {
       0
     );
     // banned_until is null/undefined when not banned
-    const bannedUntil = (u as Record<string, unknown>).banned_until as string | null ?? null;
+    const bannedUntil = (u as unknown as Record<string, unknown>).banned_until as string | null ?? null;
     const isBanned = !!bannedUntil && new Date(bannedUntil) > new Date();
 
     return {
