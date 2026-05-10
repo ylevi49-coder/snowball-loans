@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const admin = await verifyAdmin();
   if (!admin) return NextResponse.json({ error: "אין הרשאות" }, { status: 403 });
 
-  const { action, userId, email } = await request.json();
+  const { action, userId, email, loans } = await request.json();
 
   if (!action) return NextResponse.json({ error: "חסר שדה action" }, { status: 400 });
 
@@ -109,6 +109,18 @@ export async function POST(request: Request) {
         const { error } = await adminClient.auth.admin.updateUserById(userId, { email });
         if (error) return NextResponse.json({ error: error.message }, { status: 400 });
         return NextResponse.json({ ok: true, message: "האימייל עודכן" });
+      }
+
+      /* ── עדכן הלוואות ── */
+      case "update_loans": {
+        if (!userId || !Array.isArray(loans)) return NextResponse.json({ error: "חסרים שדות" }, { status: 400 });
+        const { error } = await adminClient.from("loans").upsert({
+          user_id: userId,
+          data: loans,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+        return NextResponse.json({ ok: true, message: "ההלוואות עודכנו" });
       }
 
       default:
