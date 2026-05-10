@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
 import {
   LayoutDashboard, CreditCard, BarChart3, ListChecks, GitCompare, Upload,
-  Download, Save, Plus, Snowflake, TrendingDown, Minus, LogOut,
+  Download, Save, Plus, Snowflake, TrendingDown, Minus, LogOut, Shield,
 } from "lucide-react";
+
+const ADMIN_EMAILS = ["ylevi49@gmail.com"];
 
 const STORAGE_KEY = "snowball_loans_v2";
 
@@ -255,6 +257,13 @@ export default function Home() {
             <Button variant="primary" size="sm" onClick={() => { setEditingLoan(null); setShowForm(true); }}>
               <Plus size={14} />הלוואה חדשה
             </Button>
+            {user && ADMIN_EMAILS.includes(user.email ?? "") && (
+              <a href="/admin">
+                <Button variant="ghost" size="sm">
+                  <Shield size={14} /><span className="hidden sm:inline">ניהול</span>
+                </Button>
+              </a>
+            )}
             {user && (
               <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()} title={user.email ?? ""}>
                 <LogOut size={14} /><span className="hidden sm:inline">יציאה</span>
