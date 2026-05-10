@@ -6,7 +6,6 @@ import { NextResponse } from "next/server";
 const ADMIN_EMAILS = ["ylevi49@gmail.com"];
 
 export async function GET() {
-  // 1. Verify the caller is an authenticated admin
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,10 +27,10 @@ export async function GET() {
     return NextResponse.json({ error: "אין הרשאות גישה" }, { status: 403 });
   }
 
-  // 2. Use service-role client to list all users
   const adminClient = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
   const { data: { users }, error: usersError } = await adminClient.auth.admin.listUsers();
@@ -39,7 +38,6 @@ export async function GET() {
     return NextResponse.json({ error: usersError.message }, { status: 500 });
   }
 
-  // 3. Get all loan records
   const { data: loanRecords } = await adminClient
     .from("loans")
     .select("user_id, data, updated_at");
@@ -48,13 +46,16 @@ export async function GET() {
     (loanRecords ?? []).map((r) => [r.user_id, r])
   );
 
-  // 4. Merge
   const result = users.map((u) => {
     const loans = (loanMap[u.id]?.data ?? []) as Record<string, unknown>[];
     const totalDebt = loans.reduce(
       (sum, l) => sum + ((l.currentBalance as number) ?? 0),
       0
     );
+    // banned_until is null/undefined when not banned
+    const bannedUntil = (u as Record<string, unknown>).banned_until as string | null ?? null;
+    const isBanned = !!bannedUntil && new Date(bannedUntil) > new Date();
+
     return {
       id:              u.id,
       email:           u.email ?? "",
@@ -65,6 +66,7 @@ export async function GET() {
       totalDebt,
       loans,
       updatedAt:       loanMap[u.id]?.updated_at ?? null,
+      isBanned,
     };
   });
 
